@@ -188,147 +188,83 @@ var pupil_L = new THREE.Mesh(eyeGeometry,normalMaterial);
 pupil_L.setMatrix(eyePupilMatrix_L);
 scene.add(pupil_L);
 
-
 //Tentacle socket
 //This point indicates the position for the first tentacle socket, you must figure out the other positions, (you get extra points if it is algorithmically)
-var tentacleSocketMatrix = new THREE.Matrix4().set(
+var tentacleSocketMatrixArray = [ // declare octopus sockets
+new THREE.Matrix4().set(
   1.0,0.0,0.0,-2.4, 
   0.0,1.0,0.0,-0.35, 
   0.0,0.0,1.0,2.4, 
   0.0,0.0,0.0,1.0
-  );
-var octopusSocketMatrix = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrix);
-var tentacleSocketGeometry = new THREE.Geometry();
-tentacleSocketGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
-var tentacleSocketMaterial = new THREE.PointCloudMaterial( { size: 10, sizeAttenuation: false, color:0xff0000} );
-var tentacleSocket = new THREE.PointCloud( tentacleSocketGeometry, tentacleSocketMaterial );
-tentacleSocket.setMatrix(octopusSocketMatrix);
-scene.add(tentacleSocket);
-
-var tentacleSocketMatrix2 = new THREE.Matrix4().set( // front leg matrix
-  1.0,0.0,0.0,-2.4, 
+  ),
+  new THREE.Matrix4().set(
+   1.0,0.0,0.0,-2.4, 
   0.0,1.0,0.0,-0.35, 
   0.0,0.0,1.0,-2.4, 
   0.0,0.0,0.0,1.0
-  );
-
-var tentacleSocketMatrix3 = new THREE.Matrix4().set( // back leg matrix
+  ),
+  new THREE.Matrix4().set(
+   1.0,0.0,0.0,2.4, 
+  0.0,1.0,0.0,-0.35, 
+  0.0,0.0,1.0,2.4, 
+  0.0,0.0,0.0,1.0
+  ),
+  new THREE.Matrix4().set(
  1.0,0.0,0.0,2.4, 
   0.0,1.0,0.0,-0.35, 
-  0.0,0.0,1.0,2.4, 
-  0.0,0.0,0.0,1.0
-  );
-
-var tentacleSocketMatrix4 = new THREE.Matrix4().set( // other back leg matrix
-  1.0,0.0,0.0,2.4, 
-  0.0,1.0,0.0,-0.35, 
   0.0,0.0,1.0,-2.4, 
   0.0,0.0,0.0,1.0
-  );
+  )];
 
-var octopusSocketMatrix = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrix);
-var octopusSocketMatrix2 = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrix2);
-var octopusSocketMatrix3 = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrix3);
-var octopusSocketMatrix4 = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrix4);
-
-var tentacleSocketGeometry = new THREE.Geometry();
-tentacleSocketGeometry.vertices.push(new THREE.Vector3( 0, 0, 0));
-var tentacleSocketMaterial = new THREE.PointCloudMaterial( { size: 10, sizeAttenuation: false, color:0xff0000} );
-var tentacleSocket = new THREE.PointCloud( tentacleSocketGeometry, tentacleSocketMaterial );
-tentacleSocket.setMatrix(octopusSocketMatrix);
-scene.add(tentacleSocket);
-
+var octopusSocketMatrixArray = []; // parent it 
+for(var i=0; i<tentacleSocketMatrixArray.length; i++){
+  octopusSocketMatrixArray[i] = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrixArray[i]);
+}
 
 //create tentacles and add them to the scene here (at least two cylinders per tentacle):
 //Tentacle's links
- var tentacle_01Link_01G = new THREE.CylinderGeometry(0.35,0.45,3,64);
- var tentacle01_Link01Matrix = new THREE.Matrix4().set(
- 1.0,0.0,0.0,0.0, 
-  0.0,1.0,0.0,0.0, 
- 0.0,0.0,1.0,0.0, 
-  0.0,0.0,0.0,1.0
-);
- var tentacle01_Link01TransformMatrix = new THREE.Matrix4().set(
- 1.0,0.0,0.0,0.0, 
-  0.0,1.0,0.0,0.0, 
- 0.0,0.0,1.0,0.0, 
-  0.0,0.0,0.0,1.0
-);
 
-var i = 0;
-var tentacle_01Link_01_rotated = new THREE.Matrix4().multiplyMatrices(tentacle01_Link01TransformMatrix, tentacle01_Link01Matrix); // add rotation
-var tentacle_01Link_01 = new THREE.Mesh(tentacle_01Link_01G,normalMaterial);
-var tentacle_01Link_01_parent = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrix,tentacle_01Link_01_rotated);
-  if(i==0){
-    tentacle_01Link_01_parent = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrix,tentacle_01Link_01_rotated); // parent it
-  }else if(i==1){
-    tentacle_01Link_01_parent = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrix2,tentacle_01Link_01_rotated);
-  }else if(i==2){
-    tentacle_01Link_01_parent = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrix3,tentacle_01Link_01_rotated);
-  }else if(i==3){
-    tentacle_01Link_01_parent = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrix4,tentacle_01Link_01_rotated);
-  }
+var tentacleLinkFirstRotated = [];
+var tentacleLinkFirstParent = [];
+var tentacleLinkFirst = [];
+var tentacleLinkFirstMesh = [];
+  
+var tentacleLinkSecondRotated = [];
+var tentacleLinkSecondParent = [];
+var tentacleLinkSecond = [];
+var tentacleLinkSecondMesh = [];
 
-tentacle_01Link_01.setMatrix(tentacle_01Link_01_parent);
-scene.add(tentacle_01Link_01);
+for(var i = 0; i<tentacleSocketMatrixArray.length; i++){
+     // var tentacle_01Link_01G = new THREE.CylinderGeometry(0.35,0.45,3,64);
+      tentacleLinkFirst[i] = new THREE.CylinderGeometry(0.35,0.45,3,64);
+      tentacleLinkFirstRotated[i] = new THREE.Matrix4().set(
+      1.0,0.0,0.0,0.0, 
+      0.0,1.0,0.0,0.0, 
+      0.0,0.0,1.0,0.0, 
+      0.0,0.0,0.0,1.0);// add rotation
+      tentacleLinkFirstMesh[i] = new THREE.Mesh(tentacleLinkFirst[i],normalMaterial);
+      tentacleLinkFirstParent[i] = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrixArray[i],tentacleLinkFirstRotated[i]);
+      tentacleLinkFirstMesh[i].setMatrix(tentacleLinkFirstParent[i]);
+      scene.add(tentacleLinkFirstMesh[i]);
 
-var tentacle_02Link_02G = new THREE.CylinderGeometry(0.15,0.30,3,64);
-var tentacle_02Link_02GMatrix = new THREE.Matrix4().set(
-  1.0,0.0,0.0,0.0, 
-  0.0,1.0,0.0,0.0, 
-  0.0,0.0,1.0,0.0, 
-  0.0,0.0,0.0,1.0
-  );
-var tentacle01_Link02TransformationMatrix = new THREE.Matrix4().set(
- 1.0,1.0,0.0,1.3, 
-  -1.0,1.0,0.0,2.9, 
- 0.0,0.0,1.0,0.0, 
-  0.0,0.0,0.0,1.0
-);
-
-var tentacle_01Link_02_rotated = new THREE.Matrix4().multiplyMatrices(tentacle01_Link02TransformationMatrix, tentacle_02Link_02GMatrix); // add rotation
-var tentacle_01Link_02_parent = new THREE.Matrix4().multiplyMatrices(tentacle_01Link_01_parent,tentacle_01Link_02_rotated); // parent it
-var tentacle_02Link_02 = new THREE.Mesh(tentacle_02Link_02G,normalMaterial);
-
-tentacle_02Link_02.setMatrix(tentacle_01Link_02_parent);
-scene.add(tentacle_02Link_02);
-
-
+      tentacleLinkSecond[i] = new THREE.CylinderGeometry(0.15,0.30,3,64);
+      tentacleLinkSecondRotated[i] = new THREE.Matrix4().set(
+      1.0,0.0,0.0,0.0, 
+      0.0,1.0,0.0,3.0, 
+      0.0,0.0,1.0,0.0, 
+      0.0,0.0,0.0,1.0);
+      tentacleLinkSecondMesh[i] = new THREE.Mesh(tentacleLinkSecond[i],normalMaterial);
+      tentacleLinkSecondParent[i] = new THREE.Matrix4().multiplyMatrices(tentacleLinkFirstParent[i],tentacleLinkSecondRotated[i]); // parent it
+      tentacleLinkSecondMesh[i].setMatrix(tentacleLinkSecondParent[i]);
+      scene.add(tentacleLinkSecondMesh[i]);
+}
 //APPLY DIFFERENT EFFECTS TO DIFFERNET CHANNELS
 
 var clock = new THREE.Clock(true);
 function updateBody() {
+  var t = clock.getElapsedTime();
   // update everything
-  var octopusEye_RMatrix = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, eyeTSMatrix_R);
-  eye_R.setMatrix(octopusEye_RMatrix);
-  var pupilTSRMatrix_R = new THREE.Matrix4().multiplyMatrices(pupilRotMatrix_R, pupilMatrix_R);
-  var eyePupilMatrix_R = new THREE.Matrix4().multiplyMatrices(octopusEye_RMatrix, pupilTSRMatrix_R);
-pupil_R.setMatrix(eyePupilMatrix_R);
-
-var octopusEye_LMatrix = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, eyeTSMatrix_L);
-eye_L.setMatrix(octopusEye_LMatrix);
-var pupilTSRMatrix_L = new THREE.Matrix4().multiplyMatrices(pupilRotMatrix_L, pupilMatrix_L);
-var eyePupilMatrix_L = new THREE.Matrix4().multiplyMatrices(octopusEye_LMatrix, pupilTSRMatrix_L);
-pupil_L.setMatrix(eyePupilMatrix_L);
-
-var octopusSocketMatrix = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrix);
-tentacleSocket.setMatrix(octopusSocketMatrix);
-
-var tentacle01_Link01Matrix = new THREE.Matrix4().set(
- 1.0,0.0,0.0,0.0, 
-  0.0,1.0,0.0,0.0, 
- 0.0,0.0,1.0,0.0, 
-  0.0,0.0,0.0,1.0
-);
- var tentacle01_Link01TransformMatrix = new THREE.Matrix4().set(
- 1.0,0.0,0.0,0.0, 
-  0.0,1.0,0.0,0.0, 
- 0.0,0.0,1.0,0.0, 
-  0.0,0.0,0.0,1.0
-);
-var tentacle_01Link_01_rotated = new THREE.Matrix4().multiplyMatrices(tentacle01_Link01TransformMatrix, tentacle01_Link01Matrix); // add rotation
-var tentacle_01Link_01_parent = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrix,tentacle_01Link_01_rotated); // parent it
-tentacle_01Link_01.setMatrix(tentacle_01Link_01_parent);
+  updateBodyParts(t);
 
   switch(channel)
   {
@@ -348,11 +284,11 @@ tentacle_01Link_01.setMatrix(tentacle_01Link_01_parent);
     //animation
     case 3:
       {
-        var t = clock.getElapsedTime();
+        
         //animate octopus here:
        octopusMatrix.value = new THREE.Matrix4().set(
                   1.0,0.0,0.0,0.0, 
-                  0.0,1.0,0.0,2*(Math.sin(t/2)+2.2), 
+                  0.0,1.0,0.0,2*(Math.sin(t/1.2)+2.2), 
                   0.0,0.0,1.0,0.0, 
                   0.0,0.0,0.0,1.0
                   )
@@ -385,6 +321,32 @@ function update() {
   updateBody();
   requestAnimationFrame(update);
   renderer.render(scene, camera);
+}
+
+function updateBodyParts(t){
+  var octopusEye_RMatrix = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, eyeTSMatrix_R);
+  eye_R.setMatrix(octopusEye_RMatrix);
+  var pupilTSRMatrix_R = new THREE.Matrix4().multiplyMatrices(pupilRotMatrix_R, pupilMatrix_R);
+  var eyePupilMatrix_R = new THREE.Matrix4().multiplyMatrices(octopusEye_RMatrix, pupilTSRMatrix_R);
+  pupil_R.setMatrix(eyePupilMatrix_R);
+
+  var octopusEye_LMatrix = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, eyeTSMatrix_L);
+  eye_L.setMatrix(octopusEye_LMatrix);
+
+  var pupilTSRMatrix_L = new THREE.Matrix4().multiplyMatrices(pupilRotMatrix_L, pupilMatrix_L);
+  var eyePupilMatrix_L = new THREE.Matrix4().multiplyMatrices(octopusEye_LMatrix, pupilTSRMatrix_L);
+  pupil_L.setMatrix(eyePupilMatrix_L);
+
+  for(var i=0; i<tentacleSocketMatrixArray.length; i++){
+    octopusSocketMatrixArray[i] = new THREE.Matrix4().multiplyMatrices(octopusMatrix.value, tentacleSocketMatrixArray[i]);
+  }
+  for(var i = 0; i<tentacleSocketMatrixArray.length; i++){
+        tentacleLinkFirstParent[i] = new THREE.Matrix4().multiplyMatrices(octopusSocketMatrixArray[i],tentacleLinkFirstRotated[i]);
+        tentacleLinkFirstMesh[i].setMatrix(tentacleLinkFirstParent[i]);
+
+        tentacleLinkSecondParent[i] = new THREE.Matrix4().multiplyMatrices(tentacleLinkFirstParent[i],tentacleLinkSecondRotated[i]);
+        tentacleLinkSecondMesh[i].setMatrix(tentacleLinkSecondParent[i]);
+  }
 }
 
 update();
